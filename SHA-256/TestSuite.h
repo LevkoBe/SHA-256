@@ -88,7 +88,9 @@ inline void runAllTests() {
         { hexToString("4dd3cfd283d35c02da809cb356f96d9ac7e49cd7") + "give my friend 2 bitcoins for a pizza",
          "000000554c9f8e401981ff157137fd80a78dd7d51088992a71454193c8aa5156"},
         { hexToString("2e78bda7c91f9efd865f111509f27b807b80b705") + "give my friend 2 bitcoins for a pizza",
-         "00000000e14d7585042a599eb3416327185b9f1112122c1f62eb8ff580f9530a"}
+         "00000000e14d7585042a599eb3416327185b9f1112122c1f62eb8ff580f9530a"},
+        { "bqML4Mnpljj8Ne75tiXlgive my friend 2 bitcoins for a pizza", // seed 1112164339037300
+         "0000005015966429ef1abf0f867ac4bc57db8da1f6fe512d0dccefb00a1c0f42"} // 25 seros
     };
 
     std::cout << "Running basic tests..." << std::endl;

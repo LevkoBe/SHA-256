@@ -4,6 +4,6 @@
 
 int main() {
     runAllTests();
-    findPrefixWithLeadingZeroHash("give my friend 2 bitcoins for a pizza", 4);
+    //findPrefixWithLeadingZeroHash("give my friend 2 bitcoins for a pizza", 4);
     return 0;
 }
