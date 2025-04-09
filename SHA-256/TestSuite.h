@@ -7,6 +7,16 @@
 #include <iomanip>
 #include <cassert>
 
+std::string hexToString(const std::string& hex) {
+    std::string result;
+    for (size_t i = 0; i < hex.length(); i += 2) {
+        std::string byteString = hex.substr(i, 2);
+        char byte = static_cast<char>(strtol(byteString.c_str(), nullptr, 16));
+        result += byte;
+    }
+    return result;
+}
+
 inline void testOutput(const std::string& expectedHash, const std::string& result, int testNum) {
     std::cout << "  Test " << testNum << ".\n";
     std::cout << ((result == expectedHash) ? "[PASSED]" : "[FAILED]") << std::endl;
@@ -75,6 +85,7 @@ inline void runAllTests() {
         {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
          "cf5b16a778af8380036ce59e7b0492370b249b11e8f07a51afac45037afee9d1"},
         {std::string(1000000, 'a'), "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0"},
+        { hexToString("4dd3cfd283d35c02da809cb356f96d9ac7e49cd7") + "give my friend 2 bitcoins for a pizza", "000000554c9f8e401981ff157137fd80a78dd7d51088992a71454193c8aa5156"}
     };
 
     std::cout << "Running basic tests..." << std::endl;
