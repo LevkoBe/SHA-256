@@ -4,6 +4,6 @@
 
 int main() {
     //runAllTests();
-    findPrefixWithLeadingZeroHash_MultiThreaded("give my friend 2 bitcoins for a pizza", 32);
+    findPrefixWithLeadingZeroHash("give my friend 2 bitcoins for a pizza", 32);
     return 0;
 }
