@@ -3,7 +3,7 @@
 #include "PrefixFinder.h"
 
 int main() {
-    //runAllTests();
-    findPrefixWithLeadingZeroHash("give my friend 2 bitcoins for a pizza", 11); // we need only 4 bytes actually
+    runAllTests();
+    findPrefixWithLeadingZeroHash("give my friend 2 bitcoins for a pizza", 4);
     return 0;
 }

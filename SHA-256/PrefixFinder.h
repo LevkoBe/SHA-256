@@ -105,7 +105,7 @@ inline void findPrefixWithLeadingZeroHash(const std::string& message, int zeroBy
 
                 if (++localAttempts % 100000 == 0) {
                     std::lock_guard<std::mutex> lock(outputMutex);
-                    std::cout << "[Thread " << t << "] Processed " << localAttempts << " prefixes. Best: " << localMaxZeroes << " zeroes\n";
+                    std::cout << "[Thread " << t << "] Processed " << localAttempts << " prefixes. Best: " << localMaxZeroes << " zero bytes\n";
                 }
             }
             });
