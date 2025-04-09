@@ -1,53 +1,46 @@
+#pragma once
 #include "SHA256.h"
 #include <iostream>
 #include <vector>
-#include <utility>
 #include <string>
 #include <sstream>
 #include <iomanip>
 #include <cassert>
 
-static void testOutput(const bool passed, const std::string& expectedHash, const std::string& result) {
-    std::cout << (passed ? "[PASSED]" : "[FAILED]") << std::endl;
-    std::cout << "Very long string test: " << std::endl;
+inline void testOutput(const std::string& expectedHash, const std::string& result, int testNum) {
+    std::cout << "  Test " << testNum << ".\n";
+    std::cout << ((result == expectedHash) ? "[PASSED]" : "[FAILED]") << std::endl;
     std::cout << "  Expected: " << expectedHash << std::endl;
     std::cout << "  Got:      " << result << std::endl;
 }
 
-static void runTests(const std::string& input, const std::string& expectedHash, int testNum) {
+inline void runTests(const std::string& input, const std::string& expectedHash, int testNum) {
     SHA256 sha256;
     std::string result = sha256.hash(input);
-
-    bool passed = (result == expectedHash);
-
-    std::cout << "Test " << testNum << ": ";
-	testOutput(passed, expectedHash, result);
-
-    assert(passed);
+    testOutput(expectedHash, result, testNum);
+    assert(result == expectedHash);
 }
 
-static void testVeryLongString(const std::string& pattern, size_t repeatCount, const std::string& expectedHash) {
+inline void testVeryLongString(const std::string& pattern, size_t repeatCount, const std::string& expectedHash, int testNum) {
+    std::cout << "\nRunning very long string test (16 777 216 blocks)..." << std::endl;
     SHA256 sha256;
-    sha256.reset();
 
     const size_t patternSize = pattern.size();
     const uint64_t totalSize = patternSize * repeatCount;
-
     std::cout << "  Total calculated size: " << totalSize << " bytes" << std::endl;
 
     size_t fullBlocks = totalSize / 64;
     size_t patternPos = 0;
     for (size_t i = 0; i < fullBlocks; ++i) {
         std::vector<uint8_t> block(64);
-
         for (size_t j = 0; j < 64; ++j) {
             block[j] = pattern[patternPos];
             patternPos = (patternPos + 1) % patternSize;
         }
 
         sha256.hash512bBlock(block.data());
-
-        if (i % 1000000 == 0 && i > 0) std::cout << "  Processed " << i << " blocks..." << std::endl;
+        if (i % 1000000 == 0 && i > 0)
+            std::cout << "  Processed " << i << " blocks..." << std::endl;
     }
 
     size_t remaining = totalSize % 64;
@@ -60,20 +53,19 @@ static void testVeryLongString(const std::string& pattern, size_t repeatCount, c
     }
 
     sha256.hash512bBlock(finalBlock.data());
-    if (paddingLength == 128) sha256.hash512bBlock(finalBlock.data() + 64);
+    if (paddingLength == 128)
+        sha256.hash512bBlock(finalBlock.data() + 64);
 
     std::stringstream ss;
-    for (int i = 0; i < 8; i++) ss << std::hex << std::setw(8) << std::setfill('0') << sha256.H[i];
+    for (int i = 0; i < 8; i++)
+        ss << std::hex << std::setw(8) << std::setfill('0') << sha256.H[i];
     std::string result = ss.str();
 
-    bool passed = (result == expectedHash);
-
-    testOutput(passed, expectedHash, result);
-
-    assert(passed);
+    testOutput(expectedHash, result, testNum);
+    assert(result == expectedHash);
 }
 
-int main() {
+inline void runAllTests() {
     using TestCase = std::pair<std::string, std::string>;
     std::vector<TestCase> test_cases = {
         {"abc", "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"},
@@ -87,12 +79,11 @@ int main() {
 
     std::cout << "Running basic tests..." << std::endl;
     int i = 1;
-    for (const auto& [input, expected] : test_cases) runTests(input, expected, i++);
+    for (const auto& [input, expected] : test_cases)
+        runTests(input, expected, i++);
 
-    std::cout << "\nRunning very long string test (16 777 216 blocks)..." << std::endl;
-	std::string pattern = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno"; // 64 bytes = 1 block
-    testVeryLongString(pattern, 16777216, "50e72a0e26442fe2552dc3938ac58658228c0cbfb1d2ca872ae435266fcd055e");
+    testVeryLongString("abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno", 16777216,
+        "50e72a0e26442fe2552dc3938ac58658228c0cbfb1d2ca872ae435266fcd055e", i++);
 
     std::cout << "\nAll tests passed!" << std::endl;
-    return 0;
 }

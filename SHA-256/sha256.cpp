@@ -137,3 +137,22 @@ void SHA256::update(const std::string& data) {
         hash512bBlock(block.data());
     }
 }
+
+std::vector<uint8_t> SHA256::hashRaw(const std::string& input) {
+    reset();
+
+    std::vector<std::vector<uint8_t>> blocks = splitIn512bBlocks(input);
+    for (const auto& block : blocks)
+        hash512bBlock(block.data());
+
+    std::vector<uint8_t> hashBytes;
+    for (int i = 0; i < 8; i++) {
+        hashBytes.push_back((H[i] >> 24) & 0xFF);
+        hashBytes.push_back((H[i] >> 16) & 0xFF);
+        hashBytes.push_back((H[i] >> 8) & 0xFF);
+        hashBytes.push_back(H[i] & 0xFF);
+    }
+
+    return hashBytes;
+}
+

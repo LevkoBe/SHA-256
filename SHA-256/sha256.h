@@ -47,4 +47,5 @@ public:
     static std::vector<uint8_t> createStandardPadding(size_t paddingLength, size_t inputLengthBits);
     std::string hash(const std::string& input);
     void update(const std::string& data);
+    std::vector<uint8_t> hashRaw(const std::string& input);
 };
