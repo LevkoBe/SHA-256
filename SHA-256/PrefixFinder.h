@@ -11,21 +11,46 @@
 #include <random>
 #include <chrono>
 
-inline int countLeadingZeroBytes(const std::vector<uint8_t>& hash) {
+inline int countLeadingZeroBits(const std::vector<uint8_t>& hash) {
     int count = 0;
-    while (count < hash.size() && hash[count] == 0) {
-        count++;
+
+    for (size_t i = 0; i < hash.size(); i++) {
+        if (hash[i] == 0) {
+            count += 8;
+            continue;
+        }
+
+        uint8_t byte = hash[i];
+        for (int bit = 7; bit >= 0; bit--) {
+            if ((byte & (1 << bit)) == 0) {
+                count++;
+            }
+            else return count;
+        }
+        return count;
     }
+
     return count;
 }
 
-inline bool hasLeadingZeroBytes(const std::vector<uint8_t>& hash, int zeroBytes) {
-    return countLeadingZeroBytes(hash) >= zeroBytes;
+inline bool hasLeadingZeroBits(const std::vector<uint8_t>& hash, int zeroBits) {
+    return countLeadingZeroBits(hash) >= zeroBits;
 }
 
 inline void printHex(const std::vector<uint8_t>& data) {
     for (uint8_t b : data)
         std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(b);
+}
+
+inline void printBinary(const std::vector<uint8_t>& hash, int maxBytes = 4) {
+    std::cout << "Binary (first " << maxBytes << " bytes): ";
+    for (size_t i = 0; i < std::min(hash.size(), static_cast<size_t>(maxBytes)); i++) {
+        for (int bit = 7; bit >= 0; bit--) {
+            std::cout << ((hash[i] & (1 << bit)) ? '1' : '0');
+        }
+        std::cout << ' ';
+    }
+    std::cout << std::endl;
 }
 
 inline std::string generateRandomString(std::mt19937_64& rng, int length) {
@@ -60,15 +85,16 @@ inline void incrementString(std::string& str) {
     }
 }
 
-inline void findPrefixWithLeadingZeroHash(const std::string& message, int zeroBytes, uint64_t seed = 0) {
+inline void findPrefixWithLeadingZeroBits(const std::string& message, int zeroBits, uint64_t seed = 0) {
     const int prefixLen = 20;
     const int threadCount = std::thread::hardware_concurrency();
 
     if (seed == 0) seed = std::chrono::steady_clock::now().time_since_epoch().count();
     std::cout << "Using seed: " << seed << std::endl;
+    std::cout << "Searching for a prefix that produces a hash with " << zeroBits << " leading zero bits" << std::endl;
 
     std::atomic<bool> found(false);
-    std::atomic<int> maxZeroesFound(0);
+    std::atomic<int> maxBitsFound(0);
     std::mutex outputMutex;
     std::vector<std::thread> threads;
 
@@ -80,43 +106,45 @@ inline void findPrefixWithLeadingZeroHash(const std::string& message, int zeroBy
             std::string prefix = generateRandomString(rng, prefixLen);
             std::string bestPrefix = prefix;
             std::vector<uint8_t> bestHash;
-            int localMaxZeroes = 0;
+            int localMaxBits = 0;
 
             size_t localAttempts = 0;
             while (!found.load()) {
                 std::string fullInput = prefix + message;
                 std::vector<uint8_t> hash = sha256.hashRaw(fullInput);
-                int currentZeroes = countLeadingZeroBytes(hash);
+                int currentBits = countLeadingZeroBits(hash);
 
-                if (currentZeroes > localMaxZeroes) {
-                    localMaxZeroes = currentZeroes;
+                if (currentBits > localMaxBits) {
+                    localMaxBits = currentBits;
                     bestPrefix = prefix;
                     bestHash = hash;
 
-                    int currentMax = maxZeroesFound.load();
-                    while (currentZeroes > currentMax) {
-                        if (maxZeroesFound.compare_exchange_strong(currentMax, currentZeroes)) {
+                    int currentMax = maxBitsFound.load();
+                    while (currentBits > currentMax) {
+                        if (maxBitsFound.compare_exchange_strong(currentMax, currentBits)) {
                             std::lock_guard<std::mutex> lock(outputMutex);
-                            std::cout << "\n[Thread " << t << "] New max zeroes: " << currentZeroes << "\n";
+                            std::cout << "\n[Thread " << t << "] New max zero bits: " << currentBits << "\n";
                             std::cout << "Prefix: " << prefix << "\n";
                             std::cout << "Hash: ";
                             printHex(hash);
                             std::cout << std::dec << std::endl;
+                            printBinary(hash);
                             break;
                         }
-                        currentMax = maxZeroesFound.load();
+                        currentMax = maxBitsFound.load();
                     }
                 }
 
-                if (hasLeadingZeroBytes(hash, zeroBytes)) {
+                if (hasLeadingZeroBits(hash, zeroBits)) {
                     found.store(true);
                     std::lock_guard<std::mutex> lock(outputMutex);
 
-                    std::cout << "\n[Thread " << t << "] Found target " << zeroBytes << " zeroes after " << localAttempts << " attempts!\n";
+                    std::cout << "\n[Thread " << t << "] Found target " << zeroBits << " zero bits after " << localAttempts << " attempts!\n";
                     std::cout << "Prefix: " << prefix << "\n";
                     std::cout << "Hash: ";
                     printHex(hash);
                     std::cout << std::dec << std::endl;
+                    printBinary(hash);
                     break;
                 }
 
@@ -124,7 +152,7 @@ inline void findPrefixWithLeadingZeroHash(const std::string& message, int zeroBy
 
                 if (++localAttempts % 100000 == 0) {
                     std::lock_guard<std::mutex> lock(outputMutex);
-                    std::cout << "[Thread " << t << "] Processed " << localAttempts << " prefixes. Best: " << localMaxZeroes << " zero bytes\n";
+                    std::cout << "[Thread " << t << "] Processed " << localAttempts << " prefixes. Best: " << localMaxBits << " zero bits\n";
                 }
             }
             });
