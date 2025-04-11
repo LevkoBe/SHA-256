@@ -1,5 +1,6 @@
 #pragma once
 #include "SHA256.h"
+#include <string_view>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -10,6 +11,14 @@
 #include <mutex>
 #include <random>
 #include <chrono>
+
+constexpr size_t START_OFFSET = 0;
+
+constexpr std::string_view CHARSET =
+"abcdefghijklmnopqrstuvwxyz"
+"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"0123456789"
+"!@#$%^&*()- _=+[{]}|;:',<.>/?`~";
 
 inline int countLeadingZeroBits(const std::vector<uint8_t>& hash) {
     int count = 0;
@@ -54,33 +63,29 @@ inline void printBinary(const std::vector<uint8_t>& hash, int maxBytes = 4) {
 }
 
 inline std::string generateRandomString(std::mt19937_64& rng, int length) {
-    const std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    std::uniform_int_distribution<size_t> dist(0, charset.size() - 1);
+    std::uniform_int_distribution<size_t> dist(0, CHARSET.size() - 1);
 
     std::string result(length, ' ');
-    for (int i = 0; i < length; ++i) {
-        result[i] = charset[dist(rng)];
-    }
+    for (int i = 0; i < length; ++i) result[i] = CHARSET[dist(rng)];
     return result;
 }
 
 inline void incrementString(std::string& str) {
-    const std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     for (int i = str.size() - 1; i >= 0; --i) {
-        size_t pos = charset.find(str[i]);
-        if (pos != std::string::npos) {
-            if (pos < charset.size() - 1) {
-                str[i] = charset[pos + 1];
+        size_t pos = CHARSET.find(str[i]);
+        if (pos != std::string_view::npos) {
+            if (pos < CHARSET.size() - 1) {
+                str[i] = CHARSET[pos + 1];
                 return;
             }
-            else str[i] = charset[0];
+            else str[i] = CHARSET[0];
         }
         else {
             if (str[i] < 127) {
                 str[i]++;
                 return;
             }
-            else str[i] = 32;
+            else str[i] = CHARSET[0];
         }
     }
 }
@@ -91,6 +96,7 @@ inline void findPrefixWithLeadingZeroBits(const std::string& message, int zeroBi
 
     if (seed == 0) seed = std::chrono::steady_clock::now().time_since_epoch().count();
     std::cout << "Using seed: " << seed << std::endl;
+    std::cout << "Starting search from offset: " << START_OFFSET << " per thread" << std::endl;
     std::cout << "Searching for a prefix that produces a hash with " << zeroBits << " leading zero bits" << std::endl;
 
     std::atomic<bool> found(false);
@@ -104,6 +110,8 @@ inline void findPrefixWithLeadingZeroBits(const std::string& message, int zeroBi
 
             SHA256 sha256;
             std::string prefix = generateRandomString(rng, prefixLen);
+            for (size_t i = 0; i < START_OFFSET; ++i) incrementString(prefix);
+
             std::string bestPrefix = prefix;
             std::vector<uint8_t> bestHash;
             int localMaxBits = 0;
