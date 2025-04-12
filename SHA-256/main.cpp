@@ -3,8 +3,8 @@
 #include "PrefixFinder.h"
 
 int main() {
-    runAllTests();
-    //PrefixFinder prefixFinder;
-    //prefixFinder.find("give my friend 2 bitcoins for a pizza", 256, 1112164339037300); // ~~256~~ => 32
+    //runAllTests();
+    PrefixFinder prefixFinder;
+    prefixFinder.find("give my friend 2 bitcoins for a pizza", 256); // ~~256~~ => 32
     return 0;
 }

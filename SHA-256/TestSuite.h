@@ -91,8 +91,8 @@ inline void runAllTests() {
          "00000000e14d7585042a599eb3416327185b9f1112122c1f62eb8ff580f9530a"},
         { "bqML4Mnpljj8Ne75tiXlgive my friend 2 bitcoins for a pizza", // seed 1112164339037300
          "0000005015966429ef1abf0f867ac4bc57db8da1f6fe512d0dccefb00a1c0f42"}, // 25 zeros
-        { "q=Bs~ p|,:\"3>]pxYjjqgive my friend 2 bitcoins for a pizza",
-         "000003b483077820acc24c78edec62dc5d957028cdc822b97acf109fa04b009d"} // 22 zeros
+        { "8'i7{V<Ew~3 ??h/MW^tgive my friend 2 bitcoins for a pizza",
+         "00000007140a12128876b55de7425b28dde851be54ca4c9a72de00e9bcf498e7"} // 29 zeros
     };
 
     std::cout << "Running basic tests..." << std::endl;

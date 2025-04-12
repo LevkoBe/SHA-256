@@ -102,7 +102,7 @@ public:
 private:
     const std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:',.<>?/`~ \"\\";
     std::unordered_map<char, size_t> charIndex;
-    const size_t startOffset = 0;
+	const size_t startOffset = 0; // 60 million
     const int prefixLength = 20;
 
     void incrementString(std::string& str) {
